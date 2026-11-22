@@ -1,0 +1,33 @@
+def __init__(self, id_reserva, cliente, servicio, duracion, descuento=0, impuesto=None):
+        if id_reserva is None or not str(id_reserva).strip():
+            raise ParametroFaltanteError("El ID de la reserva no puede estar vacío.")
+
+        if not isinstance(cliente, Cliente):
+            raise DatosInvalidosError("El cliente proporcionado no es válido.")
+
+        if not isinstance(servicio, Servicio):
+            raise DatosInvalidosError("El servicio proporcionado no es válido.")
+
+        validar_numero_positivo(duracion, "duración")
+        validar_descuento(descuento)
+        validar_impuesto(impuesto, servicio.IVA)
+
+        self._id_reserva = str(id_reserva).strip()
+        self._cliente = cliente
+        self._servicio = servicio
+        self._duracion = duracion
+        self._descuento = descuento
+        self._impuesto = impuesto
+        self._estado = Reserva.PENDIENTE
+        self._costo_total = 0
+
+    def confirmar(self):
+        if self._estado != Reserva.PENDIENTE:
+            raise ReservaError(f"La reserva ya fue procesada (estado: {self._estado}).")
+
+        if not self._servicio.esta_disponible():
+            raise ServicioNoDisponibleError(f"El servicio '{self._servicio.obtener_nombre()}' no está disponible.")
+
+        self._servicio.ocupar()
+        self._estado = Reserva.CONFIRMADA
+        logging.info(f"Reserva confirmada: {self._id_reserva}")
